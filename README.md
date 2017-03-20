@@ -30,6 +30,7 @@
 	}]
 }
 ```
+
 - Code :
 ```swift
 
@@ -41,6 +42,7 @@ let pathsDoc: URL = FileManager.default.containerURL(forSecurityApplicationGroup
 let jsonCoreDataImport = JSONCoreDataImport(delegateClass: self, managedObjectContext: context, pathsDoc: pathsDoc)
 jsonCoreDataImport.importJSON(json)
 ```
+
 
 ###  Data + Image + DispatchGroup : 
 
