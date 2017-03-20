@@ -9,22 +9,22 @@ import CoreData
 import SwiftyJSON
 import Alamofire
 
-protocol JSONCoreDataImportDelegate: class{
+public protocol JSONCoreDataImportDelegate: class{
     func JSONCoreDataImportError(_ error: Int)
 }
 
-class JSONCoreDataImport{
+public class JSONCoreDataImport{
     
-    var managedObjectContext: NSManagedObjectContext
+    fileprivate var managedObjectContext: NSManagedObjectContext
 
-    let jsonDCIEntity = JSONDCIEntity()
-    let jsonDCIEnvironment = JSONDCIEnvironment()
+    fileprivate let jsonDCIEntity = JSONDCIEntity()
+    fileprivate let jsonDCIEnvironment = JSONDCIEnvironment()
     
-    var delegate :JSONCoreDataImportDelegate?
+    fileprivate var delegate :JSONCoreDataImportDelegate?
     
-    let pathsDoc: URL
+    fileprivate let pathsDoc: URL
     
-    var currentEntityName : String?
+    fileprivate var currentEntityName : String?
     
     init(delegate:JSONCoreDataImportDelegate,managedObjectContext: NSManagedObjectContext, pathsDoc: URL){
         self.delegate = delegate
@@ -41,7 +41,7 @@ class JSONCoreDataImport{
     *   - imageColumnName : Nom de la colonne des images dans le json
     *   - urlCDNImage : dans le cas de l'utilisation d'un CDN
     */
-    func importJSON(_ dataJSON : JSON,groupList: DispatchGroup? = nil, withImage: Bool = false, imageColumnName:String? = nil, urlCDNImage: String? = nil){
+    public func importJSON(_ dataJSON : JSON,groupList: DispatchGroup? = nil, withImage: Bool = false, imageColumnName:String? = nil, urlCDNImage: String? = nil){
         for (entityName, entityData) in dataJSON{
             if checkEntityExist(entityName){
                 
@@ -149,7 +149,7 @@ class JSONCoreDataImport{
 //action Core Data
 extension JSONCoreDataImport{
 
-    func truncateEntity(by name: String)
+    fileprivate func truncateEntity(by name: String)
     {
         let fetchRequest: NSFetchRequest<NSManagedObject> = NSFetchRequest(entityName: name)
         fetchRequest.returnsObjectsAsFaults = false
