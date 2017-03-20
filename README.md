@@ -1,4 +1,4 @@
-#JSON Core Data Import
+# JSON Core Data Import
 
 ## Requirements
 - iOS 8
@@ -14,7 +14,7 @@
 - During importation, detect and download image
 - You can used DispatchGroup for be alerted when donwload is finished
 
-#Example
+## Example
 
 ### Only data : 
 
