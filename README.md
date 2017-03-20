@@ -32,7 +32,13 @@
 ```
 - Code :
 ```swift
-let jsonCoreDataImport = JSONCoreDataImport(delegateClass: self)
+
+let appDel = UIApplication.shared.delegate as! AppDelegate
+let context = appDel.managedObjectContext
+
+let pathsDoc: URL = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: "group.fr.hours-alone")!
+
+let jsonCoreDataImport = JSONCoreDataImport(delegateClass: self, managedObjectContext: context, pathsDoc: pathsDoc)
 jsonCoreDataImport.importJSON(json)
 ```
 
@@ -55,7 +61,13 @@ jsonCoreDataImport.importJSON(json)
 - Code :
 ```swift
 let group = DispatchGroup()
-let jsonCoreDataImport = JSONCoreDataImport(delegateClass: self)
+
+let appDel = UIApplication.shared.delegate as! AppDelegate
+let context = appDel.managedObjectContext
+
+let pathsDoc: URL = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: "group.fr.hours-alone")!
+
+let jsonCoreDataImport = JSONCoreDataImport(delegateClass: self, managedObjectContext: context, pathsDoc: pathsDoc)
 jsonCoreDataImport.importJSON(json, groupList: group,withImage: true, imageColumnName:"image",urlCDNImage: "http://cdn.mywebsite.fr/")
 
 group.notify(queue: DispatchQueue.main) {

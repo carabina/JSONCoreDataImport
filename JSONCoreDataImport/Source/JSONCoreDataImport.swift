@@ -15,20 +15,21 @@ protocol JSONCoreDataImportDelegate: class{
 
 class JSONCoreDataImport{
     
-    let appDel:AppDelegate
-    let context:NSManagedObjectContext
-    
+    var managedObjectContext: NSManagedObjectContext
+
     let jsonDCIEntity = JSONDCIEntity()
     let jsonDCIEnvironment = JSONDCIEnvironment()
     
     var delegate :JSONCoreDataImportDelegate?
     
+    let pathsDoc: URL
+    
     var currentEntityName : String?
     
-    init(delegate:JSONCoreDataImportDelegate){
+    init(delegate:JSONCoreDataImportDelegate,managedObjectContext: NSManagedObjectContext, pathsDoc: URL){
         self.delegate = delegate
-        appDel = UIApplication.shared.delegate as! AppDelegate
-        context = appDel.managedObjectContext
+        self.managedObjectContext = managedObjectContext
+        self.pathsDoc = pathsDoc
     }
     
     /*
@@ -65,7 +66,7 @@ class JSONCoreDataImport{
         // Boucle pour la récupération de chaque ligne :
         for ( _ , value ) in data{
             
-            let entity = NSManagedObject(entity: jsonDCIEnvironment.currentDescriptionEntity, insertInto: context)
+            let entity = NSManagedObject(entity: jsonDCIEnvironment.currentDescriptionEntity, insertInto: self.managedObjectContext)
             
             // Boucle pour la récupération de chaque colonne :
             for (entityKey, entityVal) in value{
@@ -85,7 +86,7 @@ class JSONCoreDataImport{
                                 groupList.leave()
                             }
                             
-                            let documentsDirectory = _pathsDoc
+                            let documentsDirectory = self.pathsDoc
                             let dataPath = documentsDirectory.appendingPathComponent("/\(self.currentEntityName!.lowercased())")
                             
                             do {
@@ -93,21 +94,21 @@ class JSONCoreDataImport{
                                     try FileManager.default.createDirectory(atPath: dataPath.path, withIntermediateDirectories: false, attributes: nil)
                                 }
                             } catch let error as NSError {
-                                Log.all(error.localizedDescription);
+                                NSLog(error.localizedDescription);
                             }
                             do {
-                                try (_pathsDoc as NSURL).setResourceValue(NSNumber(value: true), forKey: URLResourceKey.isExcludedFromBackupKey)
+                                try (self.pathsDoc as NSURL).setResourceValue(NSNumber(value: true), forKey: URLResourceKey.isExcludedFromBackupKey)
                             } catch {
                                 print("failed to set resource value (excluded)")
                             }
                             
-                            let filePath = _pathsDoc.appendingPathComponent("\(self.currentEntityName!.lowercased())/\(entityVal.rawValue)")
+                            let filePath = self.pathsDoc.appendingPathComponent("\(self.currentEntityName!.lowercased())/\(entityVal.rawValue)")
                             
                             if FileManager.default.fileExists(atPath: "\(dataPath)/\(entityVal.rawValue)") {
                                 do {
                                     try FileManager.default.removeItem(atPath: "\(dataPath)/\(entityVal.rawValue)")
                                 }catch _ {
-                                    Log.all("delete error")
+                                    NSLog("delete error")
                                 }
                             }
                             
@@ -120,8 +121,8 @@ class JSONCoreDataImport{
                             guard case let .failure(error) = response.result else { return }
                             
                             if let error = error as? AFError, response.response?.statusCode != 200{
-                                Log.all("REQUEST: \(request)")
-                                Log.all("RESPONSE: \(error)")
+                                NSLog("REQUEST: \(request)")
+                                NSLog("RESPONSE: \(error)")
                                 
                                 guard let errorCode = error.responseCode else{
                                     return self.delegate!.JSONCoreDataImportError(0)
@@ -132,14 +133,14 @@ class JSONCoreDataImport{
                         }
                     }
                 }else{
-                    Log.all("When import data for entity : '\(jsonDCIEntity.name)' this key : '\(entityKey)' not found ! \(entityVal))")
+                    NSLog("When import data for entity : '\(jsonDCIEntity.name)' this key : '\(entityKey)' not found ! \(entityVal))")
                 }
             }
             
             do {
-                try context.save()
+                try self.managedObjectContext.save()
             } catch let error as NSError  {
-                Log.all("Could not save \(error), \(error.userInfo)")
+                NSLog("Could not save \(error), \(error.userInfo)")
             }
         }
     }
@@ -150,18 +151,16 @@ extension JSONCoreDataImport{
 
     func truncateEntity(by name: String)
     {
-        let appDelegate = UIApplication.shared.delegate as! AppDelegate
-        let managedContext = appDelegate.managedObjectContext
         let fetchRequest: NSFetchRequest<NSManagedObject> = NSFetchRequest(entityName: name)
         fetchRequest.returnsObjectsAsFaults = false
         
         do
         {
-            let results = try managedContext.fetch(fetchRequest)
+            let results = try self.managedObjectContext.fetch(fetchRequest)
             for managedObject in results
             {
                 let managedObjectData:NSManagedObject = managedObject
-                managedContext.delete(managedObjectData)
+                self.managedObjectContext.delete(managedObjectData)
             }
         } catch let error as NSError {
             print("Detele all data in \(name) error : \(error) \(error.userInfo)")
@@ -189,7 +188,7 @@ extension JSONCoreDataImport{
     }
     ///check if entity exist
     fileprivate func checkEntityExist(_ entityKey:String) -> Bool{
-        if let checkEntity = NSEntityDescription.entity(forEntityName: entityKey, in: context){
+        if let checkEntity = NSEntityDescription.entity(forEntityName: entityKey, in: self.managedObjectContext){
             
             //recup name of entity :
             jsonDCIEntity.name = entityKey
